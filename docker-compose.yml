@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+
+  orders_db:
+    image: postgres
+    container_name: orders_db
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - orders_db:/var/lib/orders_db
+    ports:
+      - "5432:5432"
+
+  products_db:
+    image: postgres
+    container_name: products_db
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - products_db:/var/lib/products_db
+    ports:
+      - "5433:5433"
+
+  users_db:
+    image: postgres
+    container_name: users_db
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - users_db:/var/lib/users_db
+    ports:
+      - "5434:5434"
+
+  orders_service:
+    build:
+      context: ./orders_service
+    container_name: orders_service
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./orders_service:/app/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - rabbitmq
+      - orders_db
+
+  products_service:
+    build:
+      context: ./products_service
+    container_name: products_service
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8001"
+    volumes:
+      - ./products_service:/app/
+    ports:
+      - "8001:8001"
+    depends_on:
+      - rabbitmq
+      - products_db
+
+  users_service:
+    build:
+      context: ./users_service
+    container_name: users_service
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8002"
+    volumes:
+      - ./users_service:/app/
+    ports:
+      - "8002:8002"
+    depends_on:
+      - rabbitmq
+      - users_db   
