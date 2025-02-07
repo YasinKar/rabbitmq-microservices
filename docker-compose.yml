@@ -58,6 +58,16 @@ services:
       - ./orders_service:/app/
     ports:
       - "8000:8000"
+    environment:
+      - ORDERS_POSTGRES_NAME=postgres
+      - ORDERS_POSTGRES_USER=postgres
+      - ORDERS_POSTGRES_PASSWORD=postgres
+      - ORDERS_POSTGRES_HOST=orders_db
+      - ORDERS_POSTGRES_PORT=5432
+      - SECRET_KEY=secret
+      - DEBUG=1
+      - ALLOWED_HOSTS=*
+      - CORS_ORIGIN_WHITELIST=http://localhost
     depends_on:
       - rabbitmq
       - orders_db
@@ -71,6 +81,16 @@ services:
       - ./products_service:/app/
     ports:
       - "8001:8001"
+    environment:
+      - PRODUCTS_POSTGRES_NAME=postgres
+      - PRODUCTS_POSTGRES_USER=postgres
+      - PRODUCTS_POSTGRES_PASSWORD=postgres
+      - PRODUCTS_POSTGRES_HOST=products_db
+      - PRODUCTS_POSTGRES_PORT=5433
+      - SECRET_KEY=secret
+      - DEBUG=1
+      - ALLOWED_HOSTS=*
+      - CORS_ORIGIN_WHITELIST=http://localhost
     depends_on:
       - rabbitmq
       - products_db
@@ -84,6 +104,16 @@ services:
       - ./users_service:/app/
     ports:
       - "8002:8002"
+    environment:
+      - USERS_POSTGRES_NAME=postgres
+      - USERS_POSTGRES_USER=postgres
+      - USERS_POSTGRES_PASSWORD=postgres
+      - USERS_POSTGRES_HOST=users_db
+      - USERS_POSTGRES_PORT=5434
+      - SECRET_KEY=secret
+      - DEBUG=1
+      - ALLOWED_HOSTS=*
+      - CORS_ORIGIN_WHITELIST=http://localhost
     depends_on:
       - rabbitmq
       - users_db   
