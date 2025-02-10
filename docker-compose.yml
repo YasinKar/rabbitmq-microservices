@@ -21,7 +21,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
-      - orders_db:/var/lib/orders_db
+      - orders_data:/var/lib/orders_data
     ports:
       - "5432:5432"
 
@@ -33,9 +33,9 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
-      - products_db:/var/lib/products_db
+      - products_data:/var/lib/products_data
     ports:
-      - "5433:5433"
+      - "5433:5432"
 
   users_db:
     image: postgres
@@ -45,17 +45,17 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
-      - users_db:/var/lib/users_db
+      - users_data:/var/lib/users_data
     ports:
-      - "5434:5434"
+      - "5434:5432"
 
   orders_service:
     build:
-      context: ./orders_service
+      context: ./services/orders_service
     container_name: orders_service
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
-      - ./orders_service:/app/
+      - ./services/orders_service:/app/
     ports:
       - "8000:8000"
     environment:
@@ -67,18 +67,17 @@ services:
       - SECRET_KEY=secret
       - DEBUG=1
       - ALLOWED_HOSTS=*
-      - CORS_ORIGIN_WHITELIST=http://localhost
     depends_on:
       - rabbitmq
       - orders_db
 
   products_service:
     build:
-      context: ./products_service
+      context: ./services/products_service
     container_name: products_service
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8001"
     volumes:
-      - ./products_service:/app/
+      - ./services/products_service:/app/
     ports:
       - "8001:8001"
     environment:
@@ -86,22 +85,21 @@ services:
       - PRODUCTS_POSTGRES_USER=postgres
       - PRODUCTS_POSTGRES_PASSWORD=postgres
       - PRODUCTS_POSTGRES_HOST=products_db
-      - PRODUCTS_POSTGRES_PORT=5433
+      - PRODUCTS_POSTGRES_PORT=5432
       - SECRET_KEY=secret
       - DEBUG=1
       - ALLOWED_HOSTS=*
-      - CORS_ORIGIN_WHITELIST=http://localhost
     depends_on:
       - rabbitmq
       - products_db
 
   users_service:
     build:
-      context: ./users_service
+      context: ./services/users_service
     container_name: users_service
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8002"
     volumes:
-      - ./users_service:/app/
+      - ./services/users_service:/app/
     ports:
       - "8002:8002"
     environment:
@@ -109,7 +107,24 @@ services:
       - USERS_POSTGRES_USER=postgres
       - USERS_POSTGRES_PASSWORD=postgres
       - USERS_POSTGRES_HOST=users_db
-      - USERS_POSTGRES_PORT=5434
+      - USERS_POSTGRES_PORT=5432
+      - SECRET_KEY=secret
+      - DEBUG=1
+      - ALLOWED_HOSTS=*
+    depends_on:
+      - rabbitmq
+      - users_db
+         
+  gateway:
+    build:
+      context: ./gateway
+    container_name: gateway
+    command: "python manage.py runserver 0.0.0.0:80"
+    volumes:
+      - ./gateway:/app/
+    ports:
+      - "80:80"
+    environment:
       - SECRET_KEY=secret
       - DEBUG=1
       - ALLOWED_HOSTS=*
@@ -117,3 +132,9 @@ services:
     depends_on:
       - rabbitmq
       - users_db   
+
+volumes:
+  rabbitmq_data:
+  orders_data:
+  products_data:
+  users_data:
