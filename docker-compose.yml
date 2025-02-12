@@ -1,6 +1,17 @@
 version: '3.8'
 
 services:
+  redis:
+    image: redis:7.0.11-alpine
+    container_name: redis
+    networks:
+      - private_network
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--requirepass", "mysecurepassword"]
+    ports:
+      - "6379:6379"
+
   rabbitmq:
     image: rabbitmq:management
     container_name: rabbitmq
@@ -173,6 +184,7 @@ services:
       - private_network
 
 volumes:
+  redis_data:
   rabbitmq_data:
   orders_data:
   products_data:

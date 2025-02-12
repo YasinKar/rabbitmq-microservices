@@ -93,6 +93,29 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST').split(',')
 
+RABBITMQ_HOST = os.environ.get('RABBITMQ_HOST')
+RABBITMQ_USERNAME = os.environ.get('RABBITMQ_USERNAME')
+RABBITMQ_PASSWORD = os.environ.get('RABBITMQ_PASSWORD')
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://:{os.environ.get('REDIS_PASSWORD')}@{os.environ.get('REDIS_HOST')}:{os.environ.get('REDIS_PORT')}/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    "ratelimit": { 
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://:{os.environ.get('REDIS_PASSWORD')}@{os.environ.get('REDIS_HOST')}:{os.environ.get('REDIS_PORT')}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+RATELIMIT_USE_CACHE = "ratelimit"
+
 PROTECTED_ROUTES = [
     '/user/account/',
     '/checkout/cart',
@@ -105,10 +128,6 @@ SERVICE_ROUTES = {
     '/products': 'http://products_service:8001',
     '/user': 'http://users_service:8002',
 }
-
-RABBITMQ_USER = 'admin'
-RABBITMQ_PASSWORD = 'admin'
-RABBITMQ_HOST = 'rabbitmq'
 
 # TODO: Add below lines after domain is submitted
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

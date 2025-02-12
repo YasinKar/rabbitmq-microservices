@@ -3,6 +3,8 @@ from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 
 def get_service_url(path):
     for route, url in settings.SERVICE_ROUTES.items():
@@ -11,6 +13,7 @@ def get_service_url(path):
     return None
 
 class APIGatewayView(APIView):
+
     def operations(self, request, path):
         headers = dict(request.headers)
 
@@ -39,18 +42,29 @@ class APIGatewayView(APIView):
         if response.headers.get('content-type') == 'application/json':
             return Response(response.json(), status=response.status_code)
         return Response(response.content, status=response.status_code)
+    
+    def get_ratelimit_key(self, request):
+        return str(request.user_id) if hasattr(request, "user_id") else request.META.get("REMOTE_ADDR")
+    
+    def get_ratelimit_rate(self, request):
+        return "300/h" if hasattr(request, "user_id") else "100/h"
         
+    @method_decorator(ratelimit(key=get_ratelimit_key, rate=get_ratelimit_rate, method='GET', block=True))
     def get(self, request, path):
         return self.operations(request, path)
 
+    @method_decorator(ratelimit(key=get_ratelimit_key, rate=get_ratelimit_rate, method='POST', block=True))
     def post(self, request, path):
         return self.operations(request, path)
 
+    @method_decorator(ratelimit(key=get_ratelimit_key, rate=get_ratelimit_rate, method='PUT', block=True))
     def put(self, request, path):
         return self.operations(request, path)
 
+    @method_decorator(ratelimit(key=get_ratelimit_key, rate=get_ratelimit_rate, method='PATCH', block=True))
     def patch(self, request, path):
         return self.operations(request, path)
 
+    @method_decorator(ratelimit(key=get_ratelimit_key, rate=get_ratelimit_rate, method='DELETE', block=True))
     def delete(self, request, path):
         return self.operations(request, path)

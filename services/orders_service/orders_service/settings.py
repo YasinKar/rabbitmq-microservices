@@ -101,3 +101,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+RABBITMQ_HOST = os.environ.get('RABBITMQ_HOST')
+RABBITMQ_USERNAME = os.environ.get('RABBITMQ_USERNAME')
+RABBITMQ_PASSWORD = os.environ.get('RABBITMQ_PASSWORD')
