@@ -94,7 +94,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST').split(',')
 
 PROTECTED_ROUTES = [
-    '/user/profile',
+    '/user/account/',
     '/checkout/cart',
     '/checkout/payment',
     '/checkout/payment',
@@ -108,6 +108,7 @@ SERVICE_ROUTES = {
 
 RABBITMQ_USER = 'admin'
 RABBITMQ_PASSWORD = 'admin'
+RABBITMQ_HOST = 'rabbitmq'
 
 # TODO: Add below lines after domain is submitted
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

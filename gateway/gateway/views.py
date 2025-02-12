@@ -1,4 +1,3 @@
-import logging
 import requests
 from django.conf import settings
 from rest_framework.views import APIView
@@ -13,14 +12,16 @@ def get_service_url(path):
 
 class APIGatewayView(APIView):
     def operations(self, request, path):
-        headers = request.headers
+        headers = dict(request.headers)
+        if request.user_id:
+            headers['id'] = str(request.user_id)
         
         base_url = get_service_url(request.path)
         if not base_url:
             return Response({'error': 'Invalid path'}, status=status.HTTP_404_NOT_FOUND)
 
-        full_url = f"{base_url}/{path}"
-        logging.info("full_url: %s", full_url)
+        full_url = f"{base_url}/{path}?format=json"
+        print(f"full_url : {full_url}")
         params = request.query_params
         if params:
             full_url += f"?{params.urlencode()}"
@@ -28,10 +29,10 @@ class APIGatewayView(APIView):
         try:
             response = requests.request(method, full_url, headers=headers, json=request.data)
             if response.status_code == 404:
-                logging.error(f"Not found : {full_url}")
+                print(f"Not found : {full_url}")
                 return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
         except requests.exceptions.RequestException as e:
-            logging.error(f"Error in request: {e}")
+            print(f"Error in request: {e}")
             return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         if response.headers.get('content-type') == 'application/json':

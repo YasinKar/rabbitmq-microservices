@@ -8,7 +8,7 @@ class AuthProducer:
     def __init__(self):
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(
-                host='rabbitmq',
+                host=settings.RABBITMQ_HOST,
                 credentials=pika.PlainCredentials(settings.RABBITMQ_USER, settings.RABBITMQ_PASSWORD)
             )
         )

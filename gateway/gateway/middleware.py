@@ -19,8 +19,8 @@ class JWTAuthMiddleware:
 
             user = self.auth.check_auth(token)
             if not user or not user.get('is_authenticated'):
-                return JsonResponse({"error": user.get("message", "Authentication failed")}, status=401)
+                return JsonResponse({"error": "Authentication not provided"}, status=401)
 
-            request.META['HTTP_USER_ID'] = user['user_id']
+            request.user_id = user["user_id"]
 
         return self.get_response(request)

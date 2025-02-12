@@ -114,6 +114,27 @@ services:
     depends_on:
       - rabbitmq
       - users_db
+
+  auth_queue:
+    build:
+      context: ./services/users_service
+    container_name: auth_queue
+    command: "python manage.py auth_queue"
+    volumes:
+      - ./services/users_service:/app/
+    environment:
+      - USERS_POSTGRES_NAME=postgres
+      - USERS_POSTGRES_USER=postgres
+      - USERS_POSTGRES_PASSWORD=postgres
+      - USERS_POSTGRES_HOST=users_db
+      - USERS_POSTGRES_PORT=5432
+      - SECRET_KEY=secret
+      - DEBUG=1
+      - ALLOWED_HOSTS=*
+    depends_on:
+      - rabbitmq
+      - users_db
+      - users_service
          
   gateway:
     build:
