@@ -12,6 +12,8 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
+    networks:
+      - private_network
 
   orders_db:
     image: postgres
@@ -24,6 +26,8 @@ services:
       - orders_data:/var/lib/orders_data
     ports:
       - "5432:5432"
+    networks:
+      - private_network
 
   products_db:
     image: postgres
@@ -36,6 +40,8 @@ services:
       - products_data:/var/lib/products_data
     ports:
       - "5433:5432"
+    networks:
+      - private_network
 
   users_db:
     image: postgres
@@ -48,6 +54,8 @@ services:
       - users_data:/var/lib/users_data
     ports:
       - "5434:5432"
+    networks:
+      - private_network
 
   orders_service:
     build:
@@ -56,8 +64,8 @@ services:
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./services/orders_service:/app/
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     environment:
       - ORDERS_POSTGRES_NAME=postgres
       - ORDERS_POSTGRES_USER=postgres
@@ -70,6 +78,8 @@ services:
     depends_on:
       - rabbitmq
       - orders_db
+    networks:
+      - private_network
 
   products_service:
     build:
@@ -78,8 +88,8 @@ services:
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8001"
     volumes:
       - ./services/products_service:/app/
-    ports:
-      - "8001:8001"
+    expose:
+      - "8001"
     environment:
       - PRODUCTS_POSTGRES_NAME=postgres
       - PRODUCTS_POSTGRES_USER=postgres
@@ -92,6 +102,8 @@ services:
     depends_on:
       - rabbitmq
       - products_db
+    networks:
+      - private_network
 
   users_service:
     build:
@@ -100,8 +112,8 @@ services:
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8002"
     volumes:
       - ./services/users_service:/app/
-    ports:
-      - "8002:8002"
+    expose:
+      - "8002"
     environment:
       - USERS_POSTGRES_NAME=postgres
       - USERS_POSTGRES_USER=postgres
@@ -114,6 +126,8 @@ services:
     depends_on:
       - rabbitmq
       - users_db
+    networks:
+      - private_network
 
   auth_queue:
     build:
@@ -135,6 +149,8 @@ services:
       - rabbitmq
       - users_db
       - users_service
+    networks:
+      - private_network
          
   gateway:
     build:
@@ -153,9 +169,15 @@ services:
     depends_on:
       - rabbitmq
       - users_db   
+    networks:
+      - private_network
 
 volumes:
   rabbitmq_data:
   orders_data:
   products_data:
   users_data:
+
+networks:
+  private_network:
+    driver: bridge
