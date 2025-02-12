@@ -13,7 +13,8 @@ def get_service_url(path):
 class APIGatewayView(APIView):
     def operations(self, request, path):
         headers = dict(request.headers)
-        if request.user_id:
+
+        if request.path in settings.PROTECTED_ROUTES:
             headers['id'] = str(request.user_id)
         
         base_url = get_service_url(request.path)
@@ -30,7 +31,7 @@ class APIGatewayView(APIView):
             response = requests.request(method, full_url, headers=headers, json=request.data)
             if response.status_code == 404:
                 print(f"Not found : {full_url}")
-                return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'error': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
         except requests.exceptions.RequestException as e:
             print(f"Error in request: {e}")
             return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -8,10 +8,7 @@ class JWTAuthMiddleware:
         self.paths_to_protect = settings.PROTECTED_ROUTES
         self.auth = AuthProducer()
 
-    def __call__(self, request):
-        if request.path.startswith('/api'):
-            request.path = request.path[4:]
-            
+    def __call__(self, request):            
         if request.path in self.paths_to_protect:
             token = request.headers.get('Authorization')
             if not token:
