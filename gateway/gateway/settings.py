@@ -118,9 +118,7 @@ RATELIMIT_USE_CACHE = "ratelimit"
 
 PROTECTED_ROUTES = [
     '/user/account/',
-    '/checkout/cart',
-    '/checkout/payment',
-    '/checkout/payment',
+    '/orders/place-order/',
 ]
 
 SERVICE_ROUTES = {

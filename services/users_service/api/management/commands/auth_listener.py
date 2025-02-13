@@ -13,8 +13,8 @@ class Command(BaseCommand):
         try:
             connection = pika.BlockingConnection(
                 pika.ConnectionParameters(
-                    host='rabbitmq',
-                    credentials=pika.PlainCredentials('admin', 'admin')
+                    host=settings.RABBITMQ_HOST,
+                    credentials=pika.PlainCredentials(settings.RABBITMQ_USERNAME, settings.RABBITMQ_PASSWORD)
                 )
             )
             channel = connection.channel()
@@ -38,11 +38,15 @@ class Command(BaseCommand):
                 ch.basic_ack(delivery_tag=method.delivery_tag)
 
             channel.basic_consume(queue='auth_queue', on_message_callback=callback, auto_ack=False)
-            print(" [*] Users Service is waiting for messages...")
+            self.stdout.write(
+                self.style.NOTICE('auth_queue is waiting for messages...')
+            )
 
             # Handling graceful shutdown
             def graceful_exit(sig, frame):
-                print("Closing connection...")
+                self.stdout.write(
+                    self.style.ERROR('Closing connection...')
+                )
                 connection.close()
                 exit(0)
 
@@ -52,4 +56,6 @@ class Command(BaseCommand):
             channel.start_consuming()
 
         except pika.exceptions.AMQPConnectionError as e:
-            print(f"Failed to connect to RabbitMQ: {e}")
+            self.stdout.write(
+                self.style.ERROR(f"Failed to connect to RabbitMQ: {e}")
+            )

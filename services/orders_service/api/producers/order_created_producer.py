@@ -2,17 +2,18 @@ import pika
 import json
 import uuid
 import time
+from django.conf import settings
 
-class AuthProducer:
+class OrderCreatedProducer:
     def __init__(self):
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(
-                host='rabbitmq',
-                credentials=pika.PlainCredentials('admin', 'admin')
+                host=settings.RABBITMQ_HOST,
+                credentials=pika.PlainCredentials(settings.RABBITMQ_USERNAME, settings.RABBITMQ_PASSWORD)
             )
         )
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue='auth_queue', durable=True)
+        self.channel.queue_declare(queue='order_created_queue', durable=True)
 
         result = self.channel.queue_declare(queue='', exclusive=True)
         self.callback_queue = result.method.queue
@@ -25,19 +26,19 @@ class AuthProducer:
         if self.corr_id == properties.correlation_id:
             self.response = json.loads(body)
 
-    def check_auth(self, token, timeout=5):
+    def order_created(self, product_id, quantity, timeout=5):
         self.response = None
         self.corr_id = str(uuid.uuid4())
 
         self.channel.basic_publish(
             exchange='', 
-            routing_key='auth_queue',
+            routing_key='order_created_queue',
             properties=pika.BasicProperties(
                 reply_to=self.callback_queue,
                 correlation_id=self.corr_id,
                 content_type='application/json'
             ),
-            body=json.dumps({"token": token})
+            body=json.dumps({"product_id": product_id, "quantity" : quantity})
         )
 
         start_time = time.time()

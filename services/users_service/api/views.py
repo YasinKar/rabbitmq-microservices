@@ -15,12 +15,12 @@ class UserAccountAPIView(APIView):
     def get(self, request):
         user_id = request.headers.get("id")
         if not user_id:
-            return Response({"error": "User ID is required"}, status=400)
+            return Response({"error": "UNAUTHORIZED"}, status=status.HTTP_401_UNAUTHORIZED)
         
         try:
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=400)
+            return Response({"error": "User not found"}, status=status.HTTP_400_BAD_REQUEST)
         
         user_serializer = UserSerializer(user).data
         

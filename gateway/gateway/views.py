@@ -25,11 +25,11 @@ class APIGatewayView(APIView):
             return Response({'error': 'Invalid path'}, status=status.HTTP_404_NOT_FOUND)
 
         full_url = f"{base_url}/{path}?format=json"
-        print(f"full_url : {full_url}")
         params = request.query_params
         if params:
-            full_url += f"?{params.urlencode()}"
+            full_url += f"&{params.urlencode()}"
         method = request.method.lower()
+        print(f"full_url : {full_url}")
         try:
             response = requests.request(method, full_url, headers=headers, json=request.data)
             if response.status_code == 404:

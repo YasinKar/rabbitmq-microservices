@@ -8,9 +8,10 @@ services:
       - private_network
     volumes:
       - redis_data:/data
-    command: ["redis-server", "--requirepass", "mysecurepassword"]
+    command: ["redis-server", "--requirepass", "admin"]
     ports:
       - "6379:6379"
+    restart: always
 
   rabbitmq:
     image: rabbitmq:management
@@ -25,6 +26,7 @@ services:
       RABBITMQ_DEFAULT_PASS: admin
     networks:
       - private_network
+    restart: always
 
   orders_db:
     image: postgres
@@ -39,6 +41,7 @@ services:
       - "5432:5432"
     networks:
       - private_network
+    restart: always
 
   products_db:
     image: postgres
@@ -53,6 +56,7 @@ services:
       - "5433:5432"
     networks:
       - private_network
+    restart: always
 
   users_db:
     image: postgres
@@ -67,6 +71,7 @@ services:
       - "5434:5432"
     networks:
       - private_network
+    restart: always
 
   orders_service:
     build:
@@ -78,6 +83,9 @@ services:
     expose:
       - "8000"
     environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USERNAME=admin
+      - RABBITMQ_PASSWORD=admin
       - ORDERS_POSTGRES_NAME=postgres
       - ORDERS_POSTGRES_USER=postgres
       - ORDERS_POSTGRES_PASSWORD=postgres
@@ -91,6 +99,7 @@ services:
       - orders_db
     networks:
       - private_network
+    restart: always
 
   products_service:
     build:
@@ -102,6 +111,9 @@ services:
     expose:
       - "8001"
     environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USERNAME=admin
+      - RABBITMQ_PASSWORD=admin
       - PRODUCTS_POSTGRES_NAME=postgres
       - PRODUCTS_POSTGRES_USER=postgres
       - PRODUCTS_POSTGRES_PASSWORD=postgres
@@ -115,6 +127,7 @@ services:
       - products_db
     networks:
       - private_network
+    restart: always
 
   users_service:
     build:
@@ -126,6 +139,9 @@ services:
     expose:
       - "8002"
     environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USERNAME=admin
+      - RABBITMQ_PASSWORD=admin
       - USERS_POSTGRES_NAME=postgres
       - USERS_POSTGRES_USER=postgres
       - USERS_POSTGRES_PASSWORD=postgres
@@ -139,15 +155,19 @@ services:
       - users_db
     networks:
       - private_network
+    restart: always
 
-  auth_queue:
+  auth_listener:
     build:
       context: ./services/users_service
-    container_name: auth_queue
-    command: "python manage.py auth_queue"
+    container_name: auth_listener
+    command: "python manage.py auth_listener"
     volumes:
       - ./services/users_service:/app/
     environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USERNAME=admin
+      - RABBITMQ_PASSWORD=admin
       - USERS_POSTGRES_NAME=postgres
       - USERS_POSTGRES_USER=postgres
       - USERS_POSTGRES_PASSWORD=postgres
@@ -158,10 +178,36 @@ services:
       - ALLOWED_HOSTS=*
     depends_on:
       - rabbitmq
-      - users_db
       - users_service
     networks:
       - private_network
+    restart: always
+
+  order_created_listener:
+    build:
+      context: ./services/products_service
+    container_name: order_created_listener
+    command: "python manage.py order_created_listener"
+    volumes:
+      - ./services/products_service:/app/
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USERNAME=admin
+      - RABBITMQ_PASSWORD=admin
+      - PRODUCTS_POSTGRES_NAME=postgres
+      - PRODUCTS_POSTGRES_USER=postgres
+      - PRODUCTS_POSTGRES_PASSWORD=postgres
+      - PRODUCTS_POSTGRES_HOST=products_db
+      - PRODUCTS_POSTGRES_PORT=5432
+      - SECRET_KEY=secret
+      - DEBUG=1
+      - ALLOWED_HOSTS=*
+    depends_on:
+      - rabbitmq
+      - products_service
+    networks:
+      - private_network
+    restart: always
          
   gateway:
     build:
@@ -173,6 +219,12 @@ services:
     ports:
       - "80:80"
     environment:
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=admin
+      - REDIS_PORT=6379
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USERNAME=admin
+      - RABBITMQ_PASSWORD=admin
       - SECRET_KEY=secret
       - DEBUG=1
       - ALLOWED_HOSTS=*
@@ -182,6 +234,7 @@ services:
       - users_db   
     networks:
       - private_network
+    restart: always
 
 volumes:
   redis_data:
