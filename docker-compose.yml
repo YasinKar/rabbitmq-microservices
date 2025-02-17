@@ -8,7 +8,7 @@ services:
       - private_network
     volumes:
       - redis_data:/data
-    command: ["redis-server", "--requirepass", "admin"]
+    command: ["sh", "-c", "redis-server --requirepass \"$REDIS_PASSWORD\""]
     ports:
       - "6379:6379"
     restart: always
@@ -22,8 +22,8 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     networks:
       - private_network
     restart: always
@@ -32,9 +32,9 @@ services:
     image: postgres
     container_name: orders_db
     environment:
-      - POSTGRES_NAME=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_NAME=${ORDERS_POSTGRES_NAME}
+      - POSTGRES_USER=${ORDERS_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${ORDERS_POSTGRES_PASSWORD}
     volumes:
       - orders_data:/var/lib/orders_data
     ports:
@@ -47,9 +47,9 @@ services:
     image: postgres
     container_name: products_db
     environment:
-      - POSTGRES_NAME=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_NAME=${PRODUCTS_POSTGRES_NAME}
+      - POSTGRES_USER=${PRODUCTS_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${PRODUCTS_POSTGRES_PASSWORD}
     volumes:
       - products_data:/var/lib/products_data
     ports:
@@ -62,9 +62,9 @@ services:
     image: postgres
     container_name: users_db
     environment:
-      - POSTGRES_NAME=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_NAME=${USERS_POSTGRES_NAME}
+      - POSTGRES_USER=${USERS_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${USERS_POSTGRES_PASSWORD}
     volumes:
       - users_data:/var/lib/users_data
     ports:
@@ -84,16 +84,16 @@ services:
       - "8000"
     environment:
       - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USERNAME=admin
-      - RABBITMQ_PASSWORD=admin
-      - ORDERS_POSTGRES_NAME=postgres
-      - ORDERS_POSTGRES_USER=postgres
-      - ORDERS_POSTGRES_PASSWORD=postgres
+      - RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}
+      - ORDERS_POSTGRES_NAME=${ORDERS_POSTGRES_NAME}
+      - ORDERS_POSTGRES_USER=${ORDERS_POSTGRES_USER}
+      - ORDERS_POSTGRES_PASSWORD=${ORDERS_POSTGRES_PASSWORD}
       - ORDERS_POSTGRES_HOST=orders_db
       - ORDERS_POSTGRES_PORT=5432
-      - SECRET_KEY=secret
-      - DEBUG=1
-      - ALLOWED_HOSTS=*
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
     depends_on:
       - rabbitmq
       - orders_db
@@ -112,16 +112,16 @@ services:
       - "8001"
     environment:
       - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USERNAME=admin
-      - RABBITMQ_PASSWORD=admin
-      - PRODUCTS_POSTGRES_NAME=postgres
-      - PRODUCTS_POSTGRES_USER=postgres
-      - PRODUCTS_POSTGRES_PASSWORD=postgres
+      - RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}
+      - PRODUCTS_POSTGRES_NAME=${PRODUCTS_POSTGRES_NAME}
+      - PRODUCTS_POSTGRES_USER=${PRODUCTS_POSTGRES_USER}
+      - PRODUCTS_POSTGRES_PASSWORD=${PRODUCTS_POSTGRES_PASSWORD}
       - PRODUCTS_POSTGRES_HOST=products_db
       - PRODUCTS_POSTGRES_PORT=5432
-      - SECRET_KEY=secret
-      - DEBUG=1
-      - ALLOWED_HOSTS=*
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
     depends_on:
       - rabbitmq
       - products_db
@@ -140,16 +140,16 @@ services:
       - "8002"
     environment:
       - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USERNAME=admin
-      - RABBITMQ_PASSWORD=admin
-      - USERS_POSTGRES_NAME=postgres
-      - USERS_POSTGRES_USER=postgres
-      - USERS_POSTGRES_PASSWORD=postgres
+      - RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}
+      - USERS_POSTGRES_NAME=${USERS_POSTGRES_NAME}
+      - USERS_POSTGRES_USER=${USERS_POSTGRES_USER}
+      - USERS_POSTGRES_PASSWORD=${USERS_POSTGRES_PASSWORD}
       - USERS_POSTGRES_HOST=users_db
       - USERS_POSTGRES_PORT=5432
-      - SECRET_KEY=secret
-      - DEBUG=1
-      - ALLOWED_HOSTS=*
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
     depends_on:
       - rabbitmq
       - users_db
@@ -166,16 +166,16 @@ services:
       - ./services/users_service:/app/
     environment:
       - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USERNAME=admin
-      - RABBITMQ_PASSWORD=admin
-      - USERS_POSTGRES_NAME=postgres
-      - USERS_POSTGRES_USER=postgres
-      - USERS_POSTGRES_PASSWORD=postgres
+      - RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}
+      - USERS_POSTGRES_NAME=${USERS_POSTGRES_NAME}
+      - USERS_POSTGRES_USER=${USERS_POSTGRES_USER}
+      - USERS_POSTGRES_PASSWORD=${USERS_POSTGRES_PASSWORD}
       - USERS_POSTGRES_HOST=users_db
       - USERS_POSTGRES_PORT=5432
-      - SECRET_KEY=secret
-      - DEBUG=1
-      - ALLOWED_HOSTS=*
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
     depends_on:
       - rabbitmq
       - users_service
@@ -192,16 +192,16 @@ services:
       - ./services/products_service:/app/
     environment:
       - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USERNAME=admin
-      - RABBITMQ_PASSWORD=admin
-      - PRODUCTS_POSTGRES_NAME=postgres
-      - PRODUCTS_POSTGRES_USER=postgres
-      - PRODUCTS_POSTGRES_PASSWORD=postgres
-      - PRODUCTS_POSTGRES_HOST=products_db
-      - PRODUCTS_POSTGRES_PORT=5432
-      - SECRET_KEY=secret
-      - DEBUG=1
-      - ALLOWED_HOSTS=*
+      - RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}
+      - ORDERS_POSTGRES_NAME=${ORDERS_POSTGRES_NAME}
+      - ORDERS_POSTGRES_USER=${ORDERS_POSTGRES_USER}
+      - ORDERS_POSTGRES_PASSWORD=${ORDERS_POSTGRES_PASSWORD}
+      - ORDERS_POSTGRES_HOST=orders_db
+      - ORDERS_POSTGRES_PORT=5432
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
     depends_on:
       - rabbitmq
       - products_service
@@ -220,15 +220,15 @@ services:
       - "80:80"
     environment:
       - REDIS_HOST=redis
-      - REDIS_PASSWORD=admin
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_PORT=6379
       - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USERNAME=admin
-      - RABBITMQ_PASSWORD=admin
-      - SECRET_KEY=secret
-      - DEBUG=1
-      - ALLOWED_HOSTS=*
-      - CORS_ORIGIN_WHITELIST=http://localhost
+      - RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CORS_ORIGIN_WHITELIST=${CORS_ORIGIN_WHITELIST}
     depends_on:
       - rabbitmq
       - users_db   
@@ -242,6 +242,7 @@ volumes:
   orders_data:
   products_data:
   users_data:
+  portainer_data:
 
 networks:
   private_network:
